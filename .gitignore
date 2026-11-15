@@ -4,6 +4,7 @@
 /data/*.csv
 !/data/example_measurements.csv
 /logs/
+/dist/
 *.log
 .vscode/
 .idea/

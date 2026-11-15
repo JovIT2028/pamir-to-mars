@@ -6,7 +6,8 @@ It compares high-altitude sites of the Pamir Mountains (Tajikistan) with Mars an
 
 > **Scientific note.** The Pamir is *not* identical to Mars or the Moon. The platform compares specific measurable parameters and states every limitation. The result is called the *Environmental Similarity Index (ESI)*; it is **not** a validated habitat suitability score.
 
-- Live demo: `[add the URL here]`
+- **Live demo (static copy, works on phone and desktop): https://jovit2028.github.io/pamir-to-mars/**
+- Full version (PHP + MySQL + admin): see *Install* below
 - Slides and 2-minute script: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
 - Team: `[add names]`
 - Tajik version of this file: [README.tg.md](README.tg.md)
@@ -59,6 +60,17 @@ The limits (1000×, 100 K) and the default weights are choices of the team. They
 | Sentinel-2 cloudless by [EOX](https://s2maps.eu/) | Sharp close-up imagery (ESA, contains modified Copernicus Sentinel data 2021) | WMTS tiles; **non-commercial licence**: replace it for commercial use |
 
 Browser requests go to our own API only. NASA data is imported into MySQL beforehand, so the demo does not depend on NASA being online (the *Analyze any point* feature is the one exception, and it caches every cell).
+
+## Static demo on GitHub Pages
+
+GitHub Pages has no PHP or MySQL, so the demo there is a static build: the numbers are the saved JSON exported from the database, ESI weights are re-applied in the browser, and *Analyze any point* asks NASA POWER directly from the browser (same maths as the PHP server; checked on several points). The admin panel is not part of it.
+
+```
+php scripts/export_static.php     # refresh the saved copy
+php scripts/build_pages.php       # builds dist/ (not committed)
+```
+
+The `gh-pages` branch holds the contents of `dist/`; enable it in *Settings → Pages → Deploy from a branch → gh-pages / (root)*.
 
 ## Install (Windows, OpenServer)
 

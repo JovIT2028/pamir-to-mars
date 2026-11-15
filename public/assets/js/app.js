@@ -13,6 +13,7 @@ async function api(path, params = {}) {
   for (const [k, v] of Object.entries(params)) {
     if (v !== null && v !== undefined && v !== '') qs.append(k, v);
   }
+  if (window.P2M_STATIC) return staticApi(path, qs);
   let res = null, data = null;
   try {
     res = await fetch(`api/${path}${qs.toString() ? '?' + qs : ''}`, { headers: { Accept: 'application/json' } });
@@ -27,6 +28,23 @@ async function api(path, params = {}) {
     throw new Error(data && data.error ? data.error : `Request failed (${res ? res.status : 'no connection'})`);
   }
   return data;
+}
+
+/** Static demo (no PHP): read the saved JSON; the weights of the ESI sliders are applied in the browser. */
+async function staticApi(path, qs) {
+  if (path === 'esi.php' && [...qs.keys()].some((k) => k.startsWith('w['))) {
+    const base = new URLSearchParams(), weights = {};
+    for (const [k, v] of qs) {
+      const m = /^w\[(.+)\]$/.exec(k);
+      if (m) weights[m[1]] = Number(v); else base.append(k, v);
+    }
+    const d = await staticCopy(path, base);
+    if (!d) throw new Error('This view is not part of the saved demo copy.');
+    return StaticProbe.reweigh(d, weights);
+  }
+  const s = await staticCopy(path, qs);
+  if (s) return s;
+  throw new Error('This view is not part of the saved demo copy.');
 }
 
 /** Backup for the demo: JSON files made by scripts/export_static.php (same names as the API calls). */
@@ -205,7 +223,9 @@ async function probeAt(latlng) {
   else probeMarker = L.circleMarker(w, { radius: 9, color: '#F97316', weight: 3, fillColor: '#F97316', fillOpacity: 0.5, bubblingMouseEvents: false }).addTo(map);
   side.innerHTML = '<div class="kicker">Analyzed point</div><p class="mt-3 muted">Asking NASA POWER for the climate of this grid cell… (a new cell can take a few seconds)</p>';
   try {
-    const d = await api('probe.php', { lat: w.lat.toFixed(4), lon: w.lng.toFixed(4), ref: $('heatRef').value });
+    const d = window.P2M_STATIC
+      ? await StaticProbe.run(w.lat, w.lng, $('heatRef').value, { api, state })
+      : await api('probe.php', { lat: w.lat.toFixed(4), lon: w.lng.toFixed(4), ref: $('heatRef').value });
     renderProbe(d);
     scrollToSide();
   } catch (e) { side.innerHTML = `<div class="kicker">Analyzed point</div><p class="errorbox mt-3">${esc(e.message)}</p>`; }
@@ -555,6 +575,7 @@ async function renderSources() {
 
 // ------------------------------------------------------------------ start
 async function start() {
+  if (window.P2M_STATIC) $('demoNote').classList.remove('hidden');
   if (typeof Chart !== 'undefined') { Chart.defaults.font.family = 'Inter'; Chart.defaults.color = CHART_TEXT; }
   try {
     const [sites, refs] = await Promise.all([api('locations.php', { kind: 'site' }), api('locations.php', { kind: 'reference' })]);
