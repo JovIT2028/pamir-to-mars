@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAMIR TO MARS — Earth analogs on the Roof of the World</title>
+<meta name="description" content="Compares high-altitude sites in Tajikistan's Pamir Mountains with Mars and Moon reference sites, using open NASA data and a transparent similarity index.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23F97316'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/css/app.css?v=8">
+</head>
+<body>
+
+<nav class="sticky top-0 z-20 flex flex-wrap items-center gap-4 px-4 md:px-8 py-3 border-b border-[#22304D] bg-[#070b16d9] backdrop-blur">
+  <a href="#home" class="display font-bold text-lg flex items-center gap-2 text-[#E6EDF7] no-underline">
+    <span class="inline-block w-5 h-5 rounded-full" style="background:radial-gradient(circle at 35% 35%,#fdba74,#c2410c);box-shadow:0 0 18px #f9731666"></span>
+    PAMIR TO MARS
+  </a>
+  <div class="flex flex-nowrap md:flex-wrap gap-1 ml-auto max-w-full overflow-x-auto" role="tablist">
+    <button class="tab" data-v="home">Overview</button>
+    <button class="tab" data-v="map">Analog Map</button>
+    <button class="tab" data-v="compare">Earth ↔ Mars / Moon</button>
+    <button class="tab" data-v="esi">Similarity Index</button>
+    <button class="tab" data-v="sources">Data &amp; Method</button>
+  </div>
+</nav>
+
+<main class="max-w-[1240px] mx-auto px-4 md:px-8 py-8">
+<div id="globalError" class="errorbox mb-6 hidden"></div>
+
+<!-- ============================== OVERVIEW -->
+<section class="view" id="v-home">
+  <div class="grid md:grid-cols-[1.15fr_.85fr] gap-10 items-center pt-6 pb-10">
+    <div>
+      <div class="kicker">NASA Space Apps Challenge 2026 · Tajikistan</div>
+      <h1 class="hero-title text-4xl md:text-6xl font-bold leading-[1.03] my-4">Finding Mars analogs on the <span>Roof of the World</span></h1>
+      <p class="muted text-[17px] max-w-xl">An open platform that compares high-altitude sites in Tajikistan's Pamir Mountains with Mars and Moon reference sites, using traceable open data and a transparent similarity index. It shows where the analogy holds and where it fails.</p>
+      <div class="flex flex-wrap gap-3 mt-6">
+        <a class="btn pri no-underline" href="#map">Explore the map →</a>
+        <a class="btn no-underline" href="#esi">See the Similarity Index</a>
+      </div>
+    </div>
+    <div class="planets" aria-hidden="true"><div class="orbit"></div><div class="pl earth"></div><div class="pl mars"></div><div class="pl moon"></div></div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="card stat"><b style="color:var(--cyan)">52 km</b><span class="muted">Karakul impact structure, rim diameter</span></div>
+    <div class="card stat"><b style="color:var(--green)">3,960 m</b><span class="muted">Lake Karakul surface elevation</span></div>
+    <div class="card stat"><b style="color:var(--mars)" id="statGale">~730 Pa</b><span class="muted">Surface pressure in Gale Crater, Mars (Curiosity REMS)</span></div>
+    <div class="card stat"><b id="statRatio">~85×</b><span class="muted">How much denser Karakul's air still is than Gale's</span></div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4 mt-4">
+    <div class="card"><div class="kicker">01 · Discover</div><h3 class="text-lg font-bold mt-2 mb-1">A map that searches for you</h3><p class="muted">Every NASA POWER grid cell of the Eastern Pamir is scored, so the map points to candidate analog areas instead of only showing hand-picked ones.</p></div>
+    <div class="card"><div class="kicker">02 · Compare</div><h3 class="text-lg font-bold mt-2 mb-1">Side-by-side, with sources</h3><p class="muted">Every value shows its unit, period, source and data type: measured, satellite, modelled, calculated or interpretation.</p></div>
+    <div class="card"><div class="kicker">03 · Be honest</div><h3 class="text-lg font-bold mt-2 mb-1">A transparent index</h3><p class="muted">Adjustable weights, missing data excluded (never counted as zero), and a plain statement of what the score does not mean.</p></div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="kicker">Why Karakul</div>
+    <p class="mt-2">Lake Karakul lies inside an impact structure about 52 km across, at roughly 3,960 m in the Eastern Pamir. The Earth Impact Database gives its age as less than 5 million years. NASA's Curiosity rover explores Gale Crater on Mars, an impact crater about 154 km across. Both are impact structures in cold, dry settings, which makes Karakul a natural place to ask: <b>how far does the similarity really go?</b></p>
+  </div>
+  <p class="disclaimer mt-5"><b>Scientific note.</b> The Pamir is not identical to Mars or the Moon. This platform compares specific measurable parameters and states their limitations.</p>
+</section>
+
+<!-- ============================== MAP -->
+<section class="view" id="v-map">
+  <div class="kicker">3D globe · open NASA data</div>
+  <h2 class="text-3xl font-bold mt-1 mb-1">Spin the globe, then fly down to the Pamir</h2>
+  <p class="muted mb-4">Drag to rotate, scroll or pinch to zoom from orbit down to real satellite imagery. Switch to Mars and the Moon to see them at the same scale.</p>
+  <div class="grid lg:grid-cols-[1.55fr_1fr] gap-4">
+    <div>
+      <div id="globeBox" class="globe-wrap">
+        <div id="globe" role="application" aria-label="3D globe of Earth, Mars and the Moon with the Pamir research sites"></div>
+        <div id="globeUI" class="g-ui"></div>
+      </div>
+      <div id="map" class="hidden" role="application" aria-label="Flat map of research sites in the Eastern Pamir"></div>
+      <div class="nasa-strip" aria-label="NASA data shown on this page">
+        <span class="nasa-label">Open NASA data</span>
+        <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">GIBS · Blue Marble, Landsat</a>
+        <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">POWER · climate</a>
+        <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener">Mars Trek · Viking, MOLA</a>
+        <a href="https://trek.nasa.gov/moon/" target="_blank" rel="noopener">Moon Trek · LRO</a>
+        <a href="https://pds.nasa.gov/" target="_blank" rel="noopener">Curiosity REMS · Gale</a>
+      </div>
+      <div class="card mt-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="heatToggle" class="w-4 h-4" style="accent-color:var(--cyan)"> <b>Similarity heatmap</b></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="probeToggle" class="w-4 h-4" style="accent-color:var(--mars)"> <b>Analyze any point</b></label>
+          <span class="muted text-sm">compared with</span>
+          <select id="heatRef" class="!w-auto" aria-label="Reference site for the heatmap and for analyzed points"></select>
+        </div>
+        <p id="probeHint" class="mt-3 text-sm muted hidden"><b style="color:var(--mars)">Analyze any point is on.</b> Click anywhere on the globe (the whole world works). The server asks NASA POWER for the climate of that grid cell and scores it against the reference site.</p>
+        <div id="heatInfo" class="mt-3 text-sm muted">Turn the heatmap on to score every NASA POWER grid cell of the region.</div>
+      </div>
+    </div>
+    <div class="card" id="side"><p class="muted">Loading sites…</p></div>
+  </div>
+</section>
+
+<!-- ============================== COMPARE -->
+<section class="view" id="v-compare">
+  <div class="kicker">Comparison</div>
+  <h2 class="text-3xl font-bold mt-1 mb-4">Earth site vs reference site</h2>
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <label class="text-sm muted">Earth site<select id="cE" class="mt-1"></select></label>
+    <label class="text-sm muted">Mars / Moon reference<select id="cR" class="mt-1"></select></label>
+  </div>
+  <div class="card overflow-x-auto">
+    <table>
+      <thead><tr><th>Parameter</th><th>Earth</th><th>Reference</th><th>Difference</th></tr></thead>
+      <tbody id="ctab"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="card mt-4 hidden" id="craterCard">
+    <div class="kicker">Crater to crater · same scale</div>
+    <p id="craterIntro" class="muted text-sm mt-1">Both pictures are 240 km wide, so a kilometre looks the same size on Earth and on Mars. The orange ring marks the impact structure.</p>
+    <div class="grid md:grid-cols-2 gap-4 mt-3">
+      <div><div id="mapE" class="cmap" style="height:340px" role="img" aria-label="Earth impact structure on a relief map"></div><p id="capE" class="text-sm mt-2"></p></div>
+      <div><div id="mapM" class="cmap" style="height:340px" role="img" aria-label="Mars impact crater on a relief map"></div><p id="capM" class="text-sm mt-2"></p></div>
+    </div>
+    <p id="craterSrc" class="muted text-xs mt-3">Earth: NASA GIBS Blue Marble relief. Mars: NASA JPL Mars Trek, MOLA colourised elevation (463 m). The Gale ring is centred on the approximate crater centre; the pin is the Curiosity landing site. Elevations of the two bodies are not compared (different datums).</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mt-4">
+    <div class="card"><div class="kicker">Surface pressure · logarithmic scale</div><div class="mt-3" style="height:240px"><canvas id="chP"></canvas></div><p class="muted text-xs mt-2">Sea level: 101,325 Pa (standard atmosphere), shown for scale.</p></div>
+    <div class="card"><div class="kicker">Limitations of this comparison</div><ul id="climits" class="mt-3 list-disc pl-5 space-y-2 muted"></ul></div>
+  </div>
+</section>
+
+<!-- ============================== ESI -->
+<section class="view" id="v-esi">
+  <div class="kicker">Environmental Similarity Index</div>
+  <h2 class="text-3xl font-bold mt-1 mb-4">How similar, and on what?</h2>
+  <div class="grid lg:grid-cols-[1fr_1.3fr] gap-4">
+    <div class="card">
+      <label class="text-sm muted">Earth site<select id="eE" class="mt-1 mb-3"></select></label>
+      <label class="text-sm muted">Mars / Moon reference<select id="eR" class="mt-1"></select></label>
+      <div class="muted mt-6 mb-1">ESI (available parameters only)</div>
+      <div class="esi-big" id="esiV" aria-live="polite">–</div>
+      <div id="esiWarn" class="mt-2"></div>
+      <div class="muted mt-3" id="esiC"></div>
+      <div class="bar mt-2"><i id="esiCB" style="width:0"></i></div>
+      <p class="disclaimer mt-5">A similarity index for specific parameters. It is <b>not</b> a validated habitat suitability score.</p>
+    </div>
+    <div class="card">
+      <div class="flex justify-between items-center mb-3"><div class="kicker">Parameters &amp; weights</div><button class="btn !py-1.5 !px-3 !text-xs" id="resetW">Reset weights</button></div>
+      <div id="wlist"></div>
+      <div class="mono muted text-[12.5px] mt-4 pt-4 border-t border-[#22304D] leading-relaxed">
+        ESI = Σ(wᵢ·sᵢ) / Σwᵢ over parameters that have both values<br>
+        pressure: s = max(0, 1 − |ln(E/R)| / ln 1000)<br>
+        temperature (K): s = max(0, 1 − |E − R| / 100)<br>
+        solar: s = 1 − |E − R| / max(E, R) &nbsp;·&nbsp; crater: 1 if equal, else 0<br>
+        missing value → excluded, completeness reported
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-4 mt-4">
+    <div class="card">
+      <div class="kicker">Best season · ESI by month</div>
+      <div class="mt-3" style="height:240px"><canvas id="chS"></canvas></div>
+      <p class="muted text-sm mt-2" id="seasonNote"></p>
+    </div>
+    <div class="card">
+      <div class="kicker">Analog fingerprint · closest known Earth analogs</div>
+      <div id="fpList" class="mt-3"></div>
+      <p class="muted text-sm mt-2" id="fpNote"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SOURCES -->
+<section class="view" id="v-sources">
+  <div class="kicker">Data registry &amp; methodology</div>
+  <h2 class="text-3xl font-bold mt-1 mb-4">Where every number comes from</h2>
+  <div class="card overflow-x-auto">
+    <table><thead><tr><th>Dataset</th><th>Provider</th><th>Access</th><th>Resolution</th><th>Limitation</th><th>Values stored</th></tr></thead>
+    <tbody id="stab"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody></table>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+    <div class="card"><span class="badge b-measured">MEASURED</span><p class="muted mt-2 text-sm">Instrument on site (Curiosity REMS)</p></div>
+    <div class="card"><span class="badge b-satellite">SATELLITE</span><p class="muted mt-2 text-sm">Remote sensing (MODIS, SRTM, Diviner)</p></div>
+    <div class="card"><span class="badge b-modelled">MODELLED</span><p class="muted mt-2 text-sm">Reanalysis or climate model (NASA POWER)</p></div>
+    <div class="card"><span class="badge b-calculated">CALCULATED</span><p class="muted mt-2 text-sm">Derived by us; formula shown</p></div>
+    <div class="card"><span class="badge b-interpretation">INTERPRETATION</span><p class="muted mt-2 text-sm">A judgement from literature, not a number measured</p></div>
+  </div>
+  <div class="card mt-4">
+    <div class="kicker">How the index works</div>
+    <p class="mono mt-2" style="color:var(--cyan)">ESI = Σ(wᵢ·sᵢ) / Σwᵢ over the parameters that have BOTH values; completeness = available / total</p>
+    <p class="disclaimer mt-3">This is an index of similarity for specific measurable parameters. It is <b>not</b> a validated habitat suitability score, and the Pamir is not identical to Mars or the Moon. A missing value is excluded from the sum and is never counted as 0.</p>
+    <div class="overflow-x-auto"><table class="mt-2"><thead><tr><th>Parameter</th><th>Unit</th><th>Role</th><th>Default weight</th><th>How it is compared</th></tr></thead><tbody id="ptab"></tbody></table></div>
+    <ul class="list-disc pl-5 space-y-2 muted mt-4 text-sm">
+      <li>When two sources give the same parameter, the more direct one is used: measured, then satellite, then modelled, then calculated.</li>
+      <li>The limits (a 1000-fold pressure ratio, 100 K) and the default weights are choices made by the team. They are adjustable and are not derived from a validated model.</li>
+      <li>NASA POWER grid cells are about 55 km wide. In mountains one cell averages peaks and valleys, so site values are regional averages, not point measurements.</li>
+      <li>The Gale ground temperature stored now is a single-month average, not an annual mean.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="max-w-[1240px] mx-auto px-4 md:px-8 py-6 muted text-sm border-t border-[#22304D]">
+  PAMIR TO MARS · Team Jovidon &amp; Nuriddin · Tajikistan · NASA Space Apps Challenge 2026 ·
+  Data: NASA POWER, NASA PDS (Curiosity REMS), Earth Impact Database · Base map: NASA GIBS
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="assets/js/globe.js?v=6"></script>
+<script src="assets/js/app.js?v=10"></script>
+</body>
+</html>
