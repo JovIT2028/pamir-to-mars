@@ -1,0 +1,99 @@
+/* PAMIR TO MARS - design system. Tailwind (CDN) handles layout; this file holds the components. */
+:root{--bg:#070B16;--panel:#0F1629;--panel2:#141D35;--line:#22304D;--text:#E6EDF7;--muted:#8B9BB4;
+      --cyan:#22D3EE;--green:#34D399;--mars:#F97316;--warn:#FBBF24;--bad:#F87171}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:
+ radial-gradient(1px 1px at 12% 18%,#fff8 50%,transparent),radial-gradient(1px 1px at 72% 12%,#fff6 50%,transparent),
+ radial-gradient(1px 1px at 40% 70%,#fff5 50%,transparent),radial-gradient(1.5px 1.5px at 88% 60%,#fff7 50%,transparent),
+ radial-gradient(1px 1px at 22% 88%,#fff4 50%,transparent),radial-gradient(1px 1px at 58% 38%,#fff5 50%,transparent),
+ radial-gradient(900px 500px at 85% -10%,#22d3ee14,transparent),radial-gradient(700px 500px at -10% 110%,#f9731612,transparent)}
+h1,h2,h3,.display{font-family:"Space Grotesk",sans-serif;letter-spacing:-.01em}
+.mono{font-family:"JetBrains Mono",monospace}
+a{color:var(--cyan)}
+.muted{color:var(--muted)}
+.kicker{font:600 12px "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);
+     padding:11px 18px;border-radius:10px;font:600 14px Inter,sans-serif;cursor:pointer}
+.btn:hover{filter:brightness(1.15)} .btn:focus-visible,.tab:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.btn.pri{background:var(--cyan);color:#04131a;border-color:var(--cyan)}
+.tab{background:none;border:0;color:var(--muted);font:500 14px Inter,sans-serif;padding:8px 14px;border-radius:8px;cursor:pointer}
+.tab:hover{color:var(--text);background:var(--panel)} .tab.on{color:#04131a;background:var(--cyan)}
+.view{display:none} .view.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.view.on{animation:none}}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 14px Inter,sans-serif;width:100%}
+input[type=range]{width:100%;accent-color:var(--cyan)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font:600 11px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid #22304d80;vertical-align:top}
+.badge{display:inline-block;font:600 10.5px "JetBrains Mono",monospace;letter-spacing:.04em;padding:2px 7px;border-radius:5px;border:1px solid;white-space:nowrap}
+.b-measured{color:var(--green);border-color:#34d39966;background:#34d3991a}
+.b-satellite{color:var(--cyan);border-color:#22d3ee66;background:#22d3ee1a}
+.b-modelled{color:#a78bfa;border-color:#a78bfa66;background:#a78bfa1a}
+.b-calculated{color:#93c5fd;border-color:#93c5fd66;background:#93c5fd1a}
+.b-interpretation{color:#f0abfc;border-color:#f0abfc66;background:#f0abfc1a}
+.b-pending{color:var(--bad);border-color:#f8717166;background:#f871711a}
+.b-warn{color:var(--warn);border-color:#fbbf2466;background:#fbbf241a}
+.disclaimer{border-left:3px solid var(--warn);background:#fbbf240d;padding:12px 16px;border-radius:0 10px 10px 0;font-size:13.5px}
+.errorbox{border-left:3px solid var(--bad);background:#f871710d;padding:12px 16px;border-radius:0 10px 10px 0;font-size:13.5px}
+.stat b{display:block;font:700 34px "Space Grotesk",sans-serif}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px} .kv dt{color:var(--muted)}
+.bar{height:8px;background:#22304d;border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:6px;transition:width .4s}
+.esi-big{font:700 72px "Space Grotesk",sans-serif;line-height:1}
+.hero-title span{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.planets{position:relative;height:360px}
+.pl{position:absolute;border-radius:50%}
+.earth{width:210px;height:210px;left:10px;top:70px;background:radial-gradient(circle at 32% 30%,#7dd3fc,#0e7490 45%,#064e3b 70%,#022c22);box-shadow:0 0 60px #22d3ee44,inset -30px -20px 60px #000a}
+.mars{width:150px;height:150px;right:20px;top:20px;background:radial-gradient(circle at 35% 30%,#fdba74,#ea580c 45%,#7c2d12 85%);box-shadow:0 0 50px #f9731655,inset -24px -16px 40px #000a}
+.moon{width:80px;height:80px;right:70px;bottom:20px;background:radial-gradient(circle at 35% 30%,#f1f5f9,#94a3b8 55%,#334155);box-shadow:inset -12px -8px 20px #000a}
+.orbit{position:absolute;inset:40px 0 0 60px;border:1px dashed #22d3ee33;border-radius:50%;transform:rotate(-18deg)}
+#map{height:520px;border-radius:14px;border:1px solid var(--line);background:#0A1222;z-index:0}
+.leaflet-container{font-family:Inter,sans-serif}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--text)}
+.legend-bar{height:10px;border-radius:5px;background:linear-gradient(90deg,#1e3a8a,#22D3EE,#34D399,#FBBF24,#F97316)}
+@media(max-width:900px){.planets{height:250px;transform:scale(.8);transform-origin:top left}#map{height:400px}.esi-big{font-size:56px}}
+.cmap{height:340px;border-radius:12px;border:1px solid #22304D;background:#0A1222}
+.cmap .leaflet-control-attribution{font-size:10px}
+
+/* ---- phones: one-row scrollable menu and finger-sized controls ---- */
+@media(max-width:700px){
+  nav .tab{white-space:nowrap;padding:12px 14px;min-height:44px}
+  .tabs-row{display:flex;gap:4px;overflow-x:auto;max-width:100%;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  select{min-height:44px}
+  .btn{min-height:44px}
+  input[type=checkbox]{width:24px;height:24px;flex:none}
+  input[type=range]{min-height:32px}
+  .kv{grid-template-columns:1fr;gap:2px 0} .kv dd{margin-bottom:8px}
+  .cmap{height:260px !important}
+  .leaflet-control-zoom a{width:36px;height:36px;line-height:36px}
+}
+@media(max-width:700px){
+  .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px}
+  td a,.muted a{display:inline-block;padding:8px 0}
+}
+
+/* ---- 3D globe ---- */
+.globe-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #22304D;background:#02050C}
+#globe{height:640px;width:100%}
+#globe .cesium-viewer,#globe .cesium-widget,#globe canvas{width:100%;height:100%}
+#globe .cesium-widget-credits{font-size:10px}
+.g-ui{position:absolute;top:12px;left:12px;z-index:5;display:flex;flex-direction:column;gap:8px;max-width:calc(100% - 70px)}
+.g-seg{display:inline-flex;background:#0A1222cc;border:1px solid #22304D;border-radius:12px;padding:3px;backdrop-filter:blur(6px);align-self:flex-start}
+.g-seg button{background:none;border:0;color:var(--muted);font:600 14px Inter,sans-serif;padding:8px 14px;border-radius:9px;cursor:pointer;min-height:36px}
+.g-seg button.on{background:var(--cyan);color:#04131a}
+.g-ui select{background:#0A1222cc;color:var(--text);border:1px solid #22304D;border-radius:10px;padding:8px 10px;font:500 13px Inter,sans-serif;width:auto;max-width:100%;backdrop-filter:blur(6px)}
+.g-chips{display:flex;flex-wrap:wrap;gap:6px}
+.g-chips button{background:#0A1222cc;color:var(--text);border:1px solid #2A3A5E;border-radius:999px;padding:6px 12px;font:500 13px Inter,sans-serif;cursor:pointer;backdrop-filter:blur(6px);min-height:34px}
+.g-chips button:hover{border-color:var(--cyan);color:var(--cyan)}
+.g-hint{font-size:12px;color:#9FB0CC;text-shadow:0 1px 3px #000;margin:2px 0 0}
+.nasa-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.nasa-label{font:600 11px "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mars)}
+.nasa-strip a{font-size:12.5px;color:var(--text);text-decoration:none;border:1px solid #2A3A5E;background:#0F1830;border-radius:999px;padding:5px 11px}
+.nasa-strip a:hover{border-color:var(--cyan);color:var(--cyan)}
+@media(max-width:700px){#globe{height:480px}.g-seg button{padding:8px 12px}.g-hint{display:none}.nasa-strip a{padding:8px 12px}}
+.g-panel{display:flex;flex-direction:column;gap:8px}
+.g-more{display:none;align-self:flex-start;background:#0A1222cc;color:var(--text);border:1px solid #2A3A5E;border-radius:10px;padding:8px 16px;font:600 14px Inter,sans-serif;min-height:40px;backdrop-filter:blur(6px);cursor:pointer}
+@media(max-width:700px){.g-more{display:inline-block}.g-panel{display:none}.g-ui.open .g-panel{display:flex}}
