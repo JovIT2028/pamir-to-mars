@@ -6,9 +6,9 @@ It compares high-altitude sites of the Pamir Mountains (Tajikistan) with Mars an
 
 > **Scientific note.** The Pamir is *not* identical to Mars or the Moon. The platform compares specific measurable parameters and states every limitation. The result is called the *Environmental Similarity Index (ESI)*; it is **not** a validated habitat suitability score.
 
-- Live demo: `[add the URL here]`
+- Live demo: 
 - Slides and 2-minute script: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
-- Team: `[add names]`
+- Team: 
 - Tajik version of this file: [README.tg.md](README.tg.md)
 
 ## What it does
