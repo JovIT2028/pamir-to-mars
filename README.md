@@ -9,7 +9,7 @@ It compares high-altitude sites of the Pamir Mountains (Tajikistan) with Mars an
 - **Live demo (static copy, works on phone and desktop): https://jovit2028.github.io/pamir-to-mars/**
 - Full version (PHP + MySQL + admin): see *Install* below
 - Slides and 2-minute script: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
-- Team: `[add names]`
+- Team: 
 - Tajik version of this file: [README.tg.md](README.tg.md)
 
 ## What it does
