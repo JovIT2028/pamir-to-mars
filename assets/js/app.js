@@ -575,7 +575,7 @@ async function renderSources() {
 
 // ------------------------------------------------------------------ start
 async function start() {
-  if (window.P2M_STATIC) $('demoNote').classList.remove('hidden');
+  if (window.P2M_STATIC) { const n = $('demoNote'); n.classList.remove('hidden'); n.style.display = 'block'; }
   if (typeof Chart !== 'undefined') { Chart.defaults.font.family = 'Inter'; Chart.defaults.color = CHART_TEXT; }
   try {
     const [sites, refs] = await Promise.all([api('locations.php', { kind: 'site' }), api('locations.php', { kind: 'reference' })]);
