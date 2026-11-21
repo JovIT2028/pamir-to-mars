@@ -15,7 +15,10 @@ require __DIR__ . '/_cli.php';
 $base = rtrim((string)opt('base', 'http://pamir-to-mars'), '/');
 $dir  = __DIR__ . '/../public/static';
 if (!is_dir($dir) && !mkdir($dir, 0755, true)) { out('Cannot create ' . $dir); exit(1); }
-foreach (glob($dir . '/*.json') ?: [] as $old) { unlink($old); }
+// Remove only the files this script writes; the world scan (worldscan__*.json) is made by scan_world.php and kept.
+foreach (glob($dir . '/*.json') ?: [] as $old) {
+    if (strpos(basename($old), 'worldscan__') !== 0) { unlink($old); }
+}
 
 $repo  = new Repository(Db::pdo());
 $sites = array_column($repo->locations('site', 'earth'), 'slug');

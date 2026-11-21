@@ -18,6 +18,8 @@ It compares high-altitude sites of the Pamir Mountains (Tajikistan) with Mars an
 |---|---|
 | **3D globe** of Earth, Mars and the Moon (rotate, zoom from orbit to ~10 m imagery), Pamir pins, impact-structure rings | *Analog Map* |
 | **Analyze any point**: click anywhere on Earth; the server fetches that cell's NASA POWER climate and scores it against Gale Crater or a Moon site | *Analog Map* |
+| **World scan**: where on Earth is most Mars-like? 10° cells scored with NASA POWER on pressure and surface temperature (2 of 4 parameters), cells fly-to list, polar and non-polar rankings | *Analog Map* |
+| **In plain words**: a template-based (no AI) reading of every analyzed point | *Analog Map* |
 | **Similarity heatmap** over 30 NASA POWER grid cells of the Eastern Pamir | *Analog Map* |
 | **Crater to crater**: Lake Karakul (52 km) and Gale Crater (154 km), same camera height and angle on two small globes | *Earth ↔ Mars / Moon* |
 | Comparison table: value, difference, unit, source, period, data type, limitations; log-scale pressure chart | *Earth ↔ Mars / Moon* |
@@ -86,6 +88,7 @@ Refresh or extend the data (CLI):
 ```
 php scripts/import_power.php     # Pamir sites + known analogs from NASA POWER (upsert, safe to repeat)
 php scripts/import_grid.php      # 30 grid cells for the heatmap
+php scripts/scan_world.php       # world scan (~600 cells, ~15 min, resumable): writes public/static/worldscan__ref-gale.json
 php scripts/import_csv.php data/file.csv   # other sources (MODIS, Diviner, SRTM, MCD); see data/example_measurements.csv
 php scripts/export_static.php    # backup JSON copy in public/static/ (used automatically if the server is down)
 php scripts/create_admin.php admin         # create an admin user (password is typed in the terminal)
