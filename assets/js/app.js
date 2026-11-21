@@ -211,9 +211,21 @@ function scrollToSide() {
   if (window.innerWidth < 1024) { $('side').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
 
+let probeLine = null;
+
+/** Draw the closest known analog on the map: a dashed line and its name. */
+function showNearestAnalog(d, w) {
+  const nb = d.fingerprint && d.fingerprint.available && d.fingerprint.neighbours[0];
+  const a = nb ? state.analogs.find((x) => x.slug === nb.slug) : null;
+  if (!a) return;
+  if (mapMode === 'globe') Globe.setProbeLink(w.lat, w.lng, a.latitude, a.longitude, a.name.replace(/s*(.*)/, '').split(',')[0]);
+  else if (map) probeLine = L.polyline([[w.lat, w.lng], [a.latitude, a.longitude]], { color: '#22D3EE', dashArray: '6 8' }).addTo(map).bindTooltip(a.name, { permanent: true });
+}
+
 function clearProbeMarker() {
   if (mapMode === 'globe') Globe.setProbe(null);
   else if (probeMarker && map) { map.removeLayer(probeMarker); probeMarker = null; }
+  if (probeLine && map) { map.removeLayer(probeLine); probeLine = null; }
 }
 
 /** @param {{lat:number,lng:number}} latlng a clicked point (a Leaflet LatLng also works) */
@@ -229,6 +241,7 @@ async function probeAt(latlng) {
       ? await StaticProbe.run(w.lat, w.lng, $('heatRef').value, { api, state })
       : await api('probe.php', { lat: w.lat.toFixed(4), lon: w.lng.toFixed(4), ref: $('heatRef').value });
     renderProbe(d);
+    showNearestAnalog(d, w);
     scrollToSide();
   } catch (e) { side.innerHTML = `<div class="kicker">Analyzed point</div><p class="errorbox mt-3">${esc(e.message)}</p>`; }
 }
@@ -272,7 +285,7 @@ function renderProbe(d) {
   const color = !shown ? 'var(--muted)' : e.esi > 0.6 ? 'var(--green)' : e.esi > 0.35 ? 'var(--cyan)' : 'var(--mars)';
   const rows = d.parameters.map((q) => `<dt>${esc(q.name)}</dt><dd>${q.value ? `<span class="mono">${esc(fmt(q.code, q.value.value))}</span> ${badge(q.value.data_type)}` : '<span class="badge b-pending">UNKNOWN HERE</span>'}</dd>`).join('');
   const fp = d.fingerprint.available && d.fingerprint.neighbours.length
-    ? `<div class="mt-4"><b style="color:var(--text)">Closest known analogs (climate):</b><ol class="list-decimal pl-5 mt-1">${d.fingerprint.neighbours.slice(0, 3).map((n) => `<li>${esc(n.name)} <span class="mono muted">· distance ${n.distance.toFixed(2)}</span></li>`).join('')}</ol></div>` : '';
+    ? `<div class="mt-4"><b style="color:var(--text)">Closest known analogs (climate):</b> <span class="muted text-xs">click a name to fly there</span><ol class="list-decimal pl-5 mt-1">${d.fingerprint.neighbours.slice(0, 3).map((n) => `<li><button class="agoto" data-slug="${esc(n.slug)}" style="text-decoration:underline;cursor:pointer;background:none;border:0;color:inherit;padding:0;text-align:left">${esc(n.name)}</button> <span class="mono muted">· distance ${n.distance.toFixed(2)}</span></li>`).join('')}</ol></div>` : '';
   $('side').innerHTML = `
     <div class="kicker">Analyzed point</div>
     <h3 class="text-xl font-bold mt-1 mb-1 mono">${p.clicked_lat.toFixed(2)}°, ${p.clicked_lon.toFixed(2)}°</h3>
@@ -285,6 +298,11 @@ function renderProbe(d) {
     ${fp}
     <ul class="list-disc pl-5 mt-4 space-y-1 muted text-sm">${d.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
     <p class="disclaimer mt-4">${esc(d.disclaimer)}</p>`;
+  $('side').querySelectorAll('button.agoto').forEach((b) => b.addEventListener('click', () => {
+    const a = state.analogs.find((x) => x.slug === b.dataset.slug);
+    if (!a) return;
+    if (mapMode === 'globe') Globe.flyToPoint(a.latitude, a.longitude, 3000000); else if (map) map.setView([a.latitude, a.longitude], 5);
+  }));
 }
 
 async function selectSite(slug) {
