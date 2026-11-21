@@ -157,6 +157,8 @@ async function initMap() {
 function wireMapControls() {
   if (mapWired) return;
   mapWired = true;
+  $('worldToggle').addEventListener('change', renderWorld);
+  $('heatRef').addEventListener('change', () => { if ($('worldToggle').checked) renderWorld(); });
   $('probeToggle').addEventListener('change', () => {
     const on = $('probeToggle').checked;
     $('probeHint').classList.toggle('hidden', !on);
@@ -168,9 +170,9 @@ function wireMapControls() {
 /** The globe switched to Earth, Mars or the Moon. Heatmap and point analysis exist for Earth only. */
 function onGlobeBody(body) {
   const earth = body === 'earth';
-  $('heatToggle').disabled = !earth; $('probeToggle').disabled = !earth;
+  $('heatToggle').disabled = !earth; $('probeToggle').disabled = !earth; $('worldToggle').disabled = !earth;
   if (!earth) {
-    $('heatToggle').checked = false; $('probeToggle').checked = false;
+    $('heatToggle').checked = false; $('probeToggle').checked = false; $('worldToggle').checked = false; $('worldInfo').classList.add('hidden');
     $('probeHint').classList.add('hidden');
     $('heatInfo').textContent = 'The heatmap and point analysis work on Earth: they score Earth places against a Mars or Moon reference.';
     const ref = state.refs.find((r) => r.body === body);
@@ -231,6 +233,38 @@ async function probeAt(latlng) {
   } catch (e) { side.innerHTML = `<div class="kicker">Analyzed point</div><p class="errorbox mt-3">${esc(e.message)}</p>`; }
 }
 
+/** A short plain-language reading of an analyzed point. Templates only: no AI, every sentence comes from the numbers. */
+function explainPoint(d) {
+  const e = d.esi;
+  const val = (c) => { const q = d.parameters.find((x) => x.code === c); return q && q.value ? q.value.value : null; };
+  const refVal = (c) => { const q = e.parameters.find((x) => x.code === c); return q && q.reference ? q.reference.value : null; };
+  const refName = ((state.refs.find((r) => r.slug === d.reference) || {}).name || 'the reference site').split(',')[0];
+  const out = [];
+  const t = val('temp_surface'), rt = refVal('temp_surface');
+  if (t !== null && rt !== null) {
+    const diff = t - rt;
+    out.push(Math.abs(diff) < 12
+      ? `The ground here averages ${t.toFixed(0)} °C, within ${Math.abs(diff).toFixed(0)} K of ${refName} (${rt.toFixed(0)} °C, a one-month average).`
+      : `The ground here averages ${t.toFixed(0)} °C, about ${Math.abs(diff).toFixed(0)} K ${diff > 0 ? 'warmer' : 'colder'} than ${refName} (${rt.toFixed(0)} °C, a one-month average).`);
+  }
+  const pr = val('pressure'), rp = refVal('pressure');
+  if (pr !== null && rp !== null && rp > 0) {
+    out.push(`The air is about ${Math.round(pr / rp)}× denser than at ${refName} (${(pr / 1000).toFixed(0)} kPa against ${Math.round(rp)} Pa). No place on Earth matches Mars in pressure.`);
+  }
+  const rh = val('humidity');
+  if (rh !== null) out.push(rh < 40 ? `The air is dry (relative humidity ${rh.toFixed(0)} %); dryness is not part of the index.` : `Relative humidity is ${rh.toFixed(0)} %; dryness is not part of the index.`);
+  if (e.esi !== null && e.reliable) {
+    out.push(e.esi >= 0.6 ? `On the parameters we can compare, it is among the closer matches to ${refName}.`
+      : e.esi >= 0.45 ? `On the parameters we can compare, it is partly similar to ${refName}.`
+      : `On the parameters we can compare, it is far from ${refName}.`);
+  } else {
+    out.push('There is too little comparable data for a verdict.');
+  }
+  const nb = d.fingerprint.available && d.fingerprint.neighbours.length ? d.fingerprint.neighbours[0] : null;
+  if (nb) out.push(`Its climate is closest to a known analog: ${nb.name} (distance ${nb.distance.toFixed(2)}).`);
+  return out.join(' ');
+}
+
 function renderProbe(d) {
   const e = d.esi, p = d.point;
   const refName = (state.refs.find((r) => r.slug === d.reference) || {}).name || d.reference;
@@ -246,6 +280,7 @@ function renderProbe(d) {
     <div class="muted">ESI vs ${esc(refName)}</div>
     <div class="esi-big" style="color:${color}">${shown ? e.esi.toFixed(2) : 'n/a'}</div>
     <p class="muted text-sm mb-3">Data completeness: <b style="color:var(--text)">${e.completeness.available} / ${e.completeness.total}</b> parameters${!shown && e.esi !== null ? ' · <span class="badge b-warn">TOO LITTLE DATA</span>' : ''}</p>
+    <div class="mt-1 mb-4 p-3 rounded-lg text-sm" style="background:#0F1830;border-left:3px solid var(--mars)"><b style="color:var(--text)">In plain words</b><br><span class="muted">${esc(explainPoint(d))}</span></div>
     <dl class="kv">${rows}</dl>
     ${fp}
     <ul class="list-disc pl-5 mt-4 space-y-1 muted text-sm">${d.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
@@ -330,6 +365,58 @@ async function renderHeatmap() {
         <ol class="list-decimal pl-5 mt-1">${d.top5.map((c) => `<li><span class="mono">${c.lat.toFixed(2)}°N, ${c.lon.toFixed(3)}°E</span> · ESI ${c.esi.toFixed(2)}</li>`).join('')}</ol></div>
       <p class="mt-2">${esc(d.note)}</p>`;
   } catch (e) { info.innerHTML = `<span class="errorbox block">${esc(e.message)}</span>`; }
+}
+
+// ------------------------------------------------------------------ world scan
+let worldLayer = null;
+
+function clearWorld() {
+  if (mapMode === 'globe') Globe.setWorld(null);
+  else if (worldLayer && map) { map.removeLayer(worldLayer); worldLayer = null; }
+}
+
+/** "Where on Earth is most Mars-like?": the saved scan (static/worldscan__ref-*.json) drawn on the globe. */
+async function renderWorld() {
+  const box = $('worldInfo');
+  clearWorld();
+  if (!$('worldToggle').checked) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.textContent = 'Loading the world scan…';
+  try {
+    const res = await fetch(`static/worldscan__ref-${encodeURIComponent($('heatRef').value)}.json`);
+    if (!res.ok) throw new Error('The world scan exists for Gale Crater only.');
+    const d = await res.json();
+    // Land only: cells whose mean elevation is below 30 m are mostly sea and are left out.
+    const cells = d.cells.filter((c) => c.esi !== null && c.elev !== null && c.elev > 30);
+    if (!cells.length) throw new Error('No cells in the saved scan.');
+    const vals = cells.map((c) => c.esi), lo = Math.min(...vals), hi = Math.max(...vals);
+    const tOf = (c) => (hi > lo ? (c.esi - lo) / (hi - lo) : 0.5);
+    const tip = (c) => `ESI ${c.esi.toFixed(2)} · ${Math.round(c.elev)} m · ${c.t} °C`;
+    if (mapMode === 'globe') {
+      Globe.setWorld(cells.map((c) => ({ lat: c.lat, lon: c.lon, color: heatColor(tOf(c)) })), d.step);
+    } else {
+      worldLayer = L.layerGroup().addTo(map);
+      const h = d.step / 2;
+      for (const c of cells) {
+        L.rectangle([[Math.max(-90, c.lat - h), c.lon - h], [Math.min(90, c.lat + h), c.lon + h]],
+          { color: '#0A1222', weight: 1, fillColor: heatColor(tOf(c)), fillOpacity: 0.5 }).bindTooltip(tip(c)).addTo(worldLayer);
+      }
+    }
+    const item = (c) => `<li><button class="wgo mono" data-lat="${c.lat}" data-lon="${c.lon}" style="text-decoration:underline;cursor:pointer;background:none;border:0;color:inherit;padding:2px 0">${Math.abs(c.lat)}°${c.lat < 0 ? 'S' : 'N'}, ${Math.abs(c.lon)}°${c.lon < 0 ? 'W' : 'E'}</button> · ESI ${c.esi.toFixed(2)} · ${Math.round(c.elev).toLocaleString()} m · ${c.t} °C</li>`;
+    const top = [...cells].sort((a, b) => b.esi - a.esi);
+    const mid = top.filter((c) => Math.abs(c.lat) < 60);
+    box.innerHTML = `
+      <div class="flex items-center gap-3 mono text-xs"><span>${lo.toFixed(2)}</span><div class="legend-bar flex-1"></div><span>${hi.toFixed(2)}</span></div>
+      <div class="mt-3"><b style="color:var(--text)">Most Mars-like cells on Earth</b> (click to fly there)
+        <ol class="list-decimal pl-5 mt-1">${top.slice(0, 5).map(item).join('')}</ol></div>
+      <div class="mt-3"><b style="color:var(--text)">Best outside the polar regions</b> (latitude below 60°)
+        <ol class="list-decimal pl-5 mt-1">${mid.slice(0, 5).map(item).join('')}</ol></div>
+      <p class="mt-3">${esc(d.note)} Cells are ${d.step}° wide (about ${Math.round(d.step * 111)} km) and sea cells are hidden. Scan date: ${esc(d.generated)}.</p>`;
+    box.querySelectorAll('button.wgo').forEach((b) => b.addEventListener('click', () => {
+      const lat = Number(b.dataset.lat), lon = Number(b.dataset.lon);
+      if (mapMode === 'globe') Globe.flyToPoint(lat, lon, 2500000); else if (map) map.setView([lat, lon], 5);
+    }));
+  } catch (e) { box.innerHTML = `<span class="errorbox block">${esc(e.message)}</span>`; }
 }
 
 // ------------------------------------------------------------------ compare

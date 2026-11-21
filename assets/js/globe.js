@@ -87,6 +87,7 @@ const Globe = (() => {
 
   async function build() {
     if (viewer) { viewer.destroy(); viewer = null; }
+    worldSource = null;
     heatSource = null; probeEntities = []; Object.keys(pins).forEach((k) => delete pins[k]);
     ell = ellipsoidFor(body);
     mainEllipsoid = ell;
@@ -261,6 +262,27 @@ const Globe = (() => {
       });
     }
     viewer.dataSources.add(heatSource);
+  }
+
+  let worldSource = null;
+  /** The world scan: big coloured cells over the whole Earth (cells = [{lat, lon, color}]). */
+  function setWorld(cells, step) {
+    if (!viewer) return;
+    if (worldSource) { viewer.dataSources.remove(worldSource, true); worldSource = null; }
+    if (!cells || !cells.length) return;
+    worldSource = new C.CustomDataSource('world');
+    const h = step / 2;
+    for (const c of cells) {
+      worldSource.entities.add({ rectangle: { coordinates: C.Rectangle.fromDegrees(c.lon - h, Math.max(-90, c.lat - h), c.lon + h, Math.min(90, c.lat + h)),
+                                              material: C.Color.fromCssColorString(c.color).withAlpha(0.55) } });
+    }
+    viewer.dataSources.add(worldSource);
+  }
+
+  function flyToPoint(lat, lon, rangeM) {
+    if (!viewer) return;
+    stopSpin();
+    viewer.camera.flyTo({ destination: pos(lat, lon, rangeM), orientation: { heading: 0, pitch: C.Math.toRadians(-90), roll: 0 }, duration: 2.5 });
   }
 
   function setProbe(lat, lon) {
@@ -485,7 +507,7 @@ const Globe = (() => {
   return {
     init,
     resize() { if (viewer) { viewer.resize(); viewer.scene.requestRender(); } },
-    highlight, setHeat, setProbe, craterPair, destroyPair, pause, resume,
+    highlight, setHeat, setProbe, setWorld, flyToPoint, craterPair, destroyPair, pause, resume,
     get body() { return body; },
     setCursor(c) { if (viewer) viewer.canvas.style.cursor = c; },
   };
