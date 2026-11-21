@@ -279,6 +279,22 @@ const Globe = (() => {
     viewer.dataSources.add(worldSource);
   }
 
+  /** After "Analyze any point": a dashed line to the closest known analog, with its name always visible. */
+  function setProbeLink(lat1, lon1, lat2, lon2, name) {
+    if (!viewer) return;
+    probeEntities.push(viewer.entities.add({
+      polyline: { positions: [pos(lat1, lon1), pos(lat2, lon2)], width: 3, arcType: C.ArcType.GEODESIC,
+                  material: new C.PolylineDashMaterialProperty({ color: C.Color.fromCssColorString('#22D3EE'), dashLength: 16 }) },
+    }));
+    probeEntities.push(viewer.entities.add({
+      position: pos(lat2, lon2),
+      point: { pixelSize: 13, color: C.Color.fromCssColorString('#22D3EE'), outlineColor: C.Color.WHITE, outlineWidth: 3 },
+      label: { text: name, font: '600 15px Inter, sans-serif', fillColor: C.Color.WHITE, outlineColor: C.Color.BLACK, outlineWidth: 3,
+               style: C.LabelStyle.FILL_AND_OUTLINE, showBackground: true, backgroundColor: C.Color.fromCssColorString('#0A1222D0'),
+               verticalOrigin: C.VerticalOrigin.BOTTOM, pixelOffset: new C.Cartesian2(0, -16) },
+    }));
+  }
+
   function flyToPoint(lat, lon, rangeM) {
     if (!viewer) return;
     stopSpin();
@@ -507,7 +523,7 @@ const Globe = (() => {
   return {
     init,
     resize() { if (viewer) { viewer.resize(); viewer.scene.requestRender(); } },
-    highlight, setHeat, setProbe, setWorld, flyToPoint, craterPair, destroyPair, pause, resume,
+    highlight, setHeat, setProbe, setProbeLink, setWorld, flyToPoint, craterPair, destroyPair, pause, resume,
     get body() { return body; },
     setCursor(c) { if (viewer) viewer.canvas.style.cursor = c; },
   };
