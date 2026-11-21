@@ -127,7 +127,7 @@ docs/              demo script
 
 ## Known limitations (honest list)
 
-- Gale: the ground temperature stored is a one-month average, not an annual mean, and the solar radiation is not loaded yet. The *best season* chart therefore shows an indication only (the page says so).
+- Gale: the ground temperature stored is a one-month average, not an annual mean (published context: about 173 to 289 K over 1160 sols, Martínez et al. 2016), and the solar radiation is not loaded yet. The *best season* chart therefore shows an indication only (the page says so).
 - Coordinates and elevations of Murghab, Ak-Baital and the nine known analogs are **not verified** (they are marked *to verify*); SRTM/OpenTopography verification is planned.
 - NASA POWER cells are about 55 km wide; mountain sites are regional averages.
 - The Moon is compared only by relief and craters (no atmosphere); Diviner data is not loaded yet.
